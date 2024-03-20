@@ -133,7 +133,6 @@
 			}
 			// console.log(textoFinal)
 			document.getElementById("resultText").innerHTML = textoFinal.toLowerCase();
-			document.getElementById("resultText").animationStart();
 		}
 		function CopiarContenido(){
 			navigator.clipboard.writeText(document.getElementById("resultText").innerHTML.toLowerCase())
@@ -252,5 +251,7 @@
 		// Initialize Firebase
 		const app = initializeApp(firebaseConfig);
 		const analytics = getAnalytics(app);
-		logEvent(analytics, 'new session');
-
+		logEvent(analytics, 'mup_edge_start');
+	</script>
+</body>
+</html>
