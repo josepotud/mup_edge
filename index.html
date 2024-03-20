@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Formateador de medicación MUP</title>
+    <!-- Bootstrap -->
+    <link href="css/bootstrap-4.3.1.css" rel="stylesheet">
+	<script>
+		function ExtraerDatos() {
+			// Obtener el contenido del textarea
+			var muptext = document.getElementById("muptext").value;
+
+			// Crear un elemento div para mostrar el resultado
+			var resultDiv = document.getElementById("resulttext");
+
+			// Parsear el contenido como HTML
+			var parser = new DOMParser();
+			var parsedHtml = parser.parseFromString(muptext, 'text/html');
+
+			// Encontrar los elementos TD que contienen la descripción del fármaco y la posología
+			var descripcionFarmaco = parsedHtml.getElementsByClassName('x-grid3-cell-inner x-grid3-col-descripcionFarmaco');
+			var descripcionPosologia = parsedHtml.getElementsByClassName('x-grid3-cell-inner x-grid3-col-descripcionPosologia');
+			
+			let farmacos = []
+
+			for (let i = 0; i < descripcionFarmaco.length; i++){
+				farmaco = {};
+				data = descripcionFarmaco[i].getElementsByTagName("span")[0].getAttribute("ext:qtip").split("<br/>");
+
+				try{
+					farmaco["texto"] = data[0];
+				}
+				catch (error){
+					console.error(error);
+					farmaco["texto"] = "";
+				}
+
+				try{
+					textoFormateado = FormatearTexto(data[0])
+					farmaco["textoFormateado"] = textoFormateado;
+					textoFormateado = ""
+				}
+				catch (error){
+					console.error(error);
+					farmaco["textoFormateado"] = "";
+				}
+
+				try{
+					farmaco["principio"] = data[1];
+				}
+				catch (error){
+					console.error(error);
+					farmaco["principio"] = "";
+				}
+				
+				data = descripcionPosologia[i].getElementsByTagName("span")[0].getAttribute("ext:qtip");
+				
+				try{
+					farmaco["posologia"] = data;
+				}
+				catch (error){
+					console.error(error);
+					farmaco["posologia"] = data;
+				}
+
+				farmacos = farmacos.concat(farmaco);
+			}
+			console.log(farmacos);
+			PrintData(farmacos)
+		}
+		function FormatearTexto(texto){
+			texto = texto.toLowerCase()
+
+			if (texto.includes("ui ")){
+				textoFormateado = texto.split("ui")[0].concat("ui")
+			}
+			else if (texto.includes("mg ")){
+				textoFormateado = texto.split("mg ")[0].concat("mg")
+			}
+			else if (texto.includes("mcg ")){
+				textoFormateado = texto.split("mcg ")[0].concat("mcg")
+			}
+			else if (texto.includes("microgramos")){
+				textoFormateado = texto.split("microgramos")[0].concat("mcg")
+			}
+			else if (texto.includes("/g ")){
+				textoFormateado = texto.split("/g ")[0].concat("/g")
+			}
+			else if (texto.includes("/ml ")){
+				textoFormateado = texto.split("/ml ")[0].concat("/ml")
+			}
+			else if (texto.includes("ml ")){
+				textoFormateado = texto.split("ml ")[0].concat("ml")
+			}
+			else if (texto.includes("/l ")){
+				textoFormateado = texto.split("/l ")[0].concat("/l")
+			}
+			else if (texto.includes(" g ")){
+				textoFormateado = texto.split(" g ")[0].concat(" g ")
+			}
+			else if (texto.includes("/pulverizacion ")){
+				textoFormateado = texto.split("/pulverizacion ")[0].concat("/pulverizacion")
+			}
+			else if (texto.includes("/dos ")){
+				textoFormateado = texto.split("/dos ")[0].concat("/dosis")
+			}
+			else if (texto.includes(", ")){
+				textoFormateado = texto.split(", ")[0].concat("")
+			}
+
+			return textoFormateado
+		}
+		function PrintData(data){
+			textoFinal = ""
+			for (let index = 0; index < data.length; index++) {
+				textoFarmaco = ""
+				
+				if (data[index]["textoFormateado"] != ""){
+					textoFarmaco = textoFarmaco.concat(data[index]["textoFormateado"], " (", data[index]["posologia"], ")")
+				}
+				else{
+					textoFarmaco = textoFarmaco.concat(data[index]["texto"], " (", data[index]["posologia"], ")")
+				}
+
+				if (textoFinal == ""){
+					textoFinal = textoFinal.concat(textoFarmaco)
+				}
+				else{
+					textoFinal = textoFinal.concat("".concat(", ", textoFarmaco))
+				}
+			}
+			// console.log(textoFinal)
+			document.getElementById("resultText").innerHTML = textoFinal.toLowerCase();
+			document.getElementById("resultText").animationStart();
+		}
+		function CopiarContenido(){
+			navigator.clipboard.writeText(document.getElementById("resultText").innerHTML.toLowerCase())
+		}
+	</script>
+  </head>
+  <body>
+    <header>
+      <div class="jumbotron">
+        <div class="container">
+          <div class="row">
+            <div class="col-12">
+              <h1 class="text-center">Formateador de medicación MUP</h1>
+              <p class="text-center">Copia el texto desde el MUP e introducelo en el cuadro de texto de abajo.</p>
+              <p>&nbsp;</p>
+			  <div class="row justify-content-md-center">
+				<p class="text-center"><a class="btn btn-primary btn-lg" href="#" role="button" onClick="ExtraerDatos()">Formatealo</a> </p>
+				<div class="col-md-auto"></div>
+              	<p class="text-center"><a class="btn btn-primary btn-lg" href="#" role="button" onClick="CopiarContenido()">Copiar contenido</a> </p>
+			  </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+  <div class="container">
+	  <div class="col-2"></div>
+	  <div class="col-xl-auto">
+		<div class="d-flex justify-content-center">
+			<textarea class="" id="muptext" name="MUPText" rows="8" cols="150" oninput="ExtraerDatos()"></textarea>
+		</div>
+		  <hr>
+		  <div class="d-flex justify-content-left">
+			<div class="">
+				Texto formateado:
+			</div>
+		  </div>
+	  	<div class="col-12">
+			  <div class="bg-light" id="resultText" name="ResultText" data-mdb-animation-start="manually" data-mdb-animation-reset="false" data-mdb-animation="slide-out-right">
+				  <p>Aquí se mostrará el texto resultado</p>
+			  </div>
+	    </div>
+	  </div>
+	  <div class="col-2"></div>
+  </div>
+	  <hr>
+    <footer class="text-center">
+		<div class="container text-left">
+			<p>
+				<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+					Mostrar intrucciones
+				</button>
+				</p>
+				<style>
+					.max-width {
+					  max-width: 500px;
+					}
+				</style>
+				<div class="collapse" id="collapseExample">
+					<div class="card card-body">
+						<div class="row">
+							<img src="images/inspeccionar.png" class ="max-width">
+						</div>
+						<div><p>Seleccionar en cualquier punto fuera de la tabla con el segundo boton del ratón (o el boton derecho) el menu de inspeccionar</p></div>
+						<div class="row">
+							<img src="images/inspector2.png" class ="max-width">
+						</div>
+						<div><p>Seleccionar la primera linea y copiar el contenido con ctrl+c</p></div>
+						<div class="row">
+							<img src="images/copiarElemento.png" class ="max-width">
+						</div>
+						<div><p>Tambien existe la opción de copiar con el segundo boton del ratón (o el boton derecho)</p></div>
+					</div>
+				</div>
+		</div>
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.<br/>
+			<p>Puedes consultar el proyecto en github o descargar una copia para usarlo offline <a href="https://github.com/josepotud/MUP">aquí</a>.</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) --> 
+    <script src="js/jquery-3.3.1.min.js"></script> 
+    <!-- Include all compiled plugins (below), or include individual files as needed --> 
+    <script src="js/popper.min.js"></script> 
+    <script src="js/bootstrap-4.3.1.js"></script>
+	<script src="js/papaparse.js"></script>
+	<script src="js/require.js"></script>
+	<!-- The core Firebase JS SDK is always required and must be listed first -->
+	<!-- <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js"></script> -->
+	<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+	<!-- <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-analytics.js"></script> -->
+	<script type="module">
+		// Import the functions you need from the SDKs you need
+		import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
+		import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-analytics.js";
+		// TODO: Add SDKs for Firebase products that you want to use
+		// https://firebase.google.com/docs/web/setup#available-libraries
+
+		// Your web app's Firebase configuration
+		// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+		const firebaseConfig = {
+		apiKey: "AIzaSyBXuGJW9Kr3Avzn0u3Rgsvc3s_hrz_Fy64",
+		authDomain: "formateadormup.firebaseapp.com",
+		projectId: "formateadormup",
+		storageBucket: "formateadormup.appspot.com",
+		messagingSenderId: "164782422577",
+		appId: "1:164782422577:web:e63f7f26a6a5a7e03f7310",
+		measurementId: "G-8DEB5ZZZ2S"
+		};
+
+		// Initialize Firebase
+		const app = initializeApp(firebaseConfig);
+		const analytics = getAnalytics(app);
+		logEvent(analytics, 'new session');
+
