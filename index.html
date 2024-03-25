@@ -27,7 +27,19 @@
 
 			for (let i = 0; i < descripcionFarmaco.length; i++){
 				farmaco = {};
-				data = descripcionFarmaco[i].getElementsByTagName("span")[0].getAttribute("ext:qtip").split("<br/>");
+				try{
+					data = descripcionFarmaco[i].getElementsByTagName("span")[0].getAttribute("ext:qtip").split("<br/>");
+				}
+				catch (error){
+					try{
+						data = descripcionFarmaco[i].getElementsByTagName("span")[1].getAttribute("ext:qtip").split("<br/>");
+					}
+					catch (error2) {
+						console.log(error)
+						console.log(error2)
+					}					
+				}
+				
 
 				try{
 					farmaco["texto"] = data[0];
@@ -132,10 +144,22 @@
 				}
 			}
 			// console.log(textoFinal)
-			document.getElementById("resultText").innerHTML = textoFinal.toLowerCase();
+			textoFinal = textoFinal.toLowerCase()
+			textoFinal = textoFinal.charAt(0).toUpperCase() + textoFinal.slice(1);
+			document.getElementById("resultText").innerHTML = textoFinal;
 		}
 		function CopiarContenido(){
-			navigator.clipboard.writeText(document.getElementById("resultText").innerHTML.toLowerCase())
+			navigator.clipboard.writeText(document.getElementById("resultText").innerHTML)
+		}
+		async function PegarPortapapeles(){
+			try {
+				const text = await navigator.clipboard.readText()
+				document.getElementById("muptext").value = text;
+				ExtraerDatos()
+				console.log('Text pasted.');
+			} catch (error) {
+				console.log('Failed to read clipboard');
+			}
 		}
 	</script>
   </head>
@@ -149,6 +173,8 @@
               <p class="text-center">Copia el texto desde el MUP e introducelo en el cuadro de texto de abajo.</p>
               <p>&nbsp;</p>
 			  <div class="row justify-content-md-center">
+				<p class="text-center"><a class="btn btn-primary btn-lg" href="#" role="button" onClick="PegarPortapapeles()">Pegar Portapapeles</a> </p>
+				<div class="col-md-auto"></div>
 				<p class="text-center"><a class="btn btn-primary btn-lg" href="#" role="button" onClick="ExtraerDatos()">Formatealo</a> </p>
 				<div class="col-md-auto"></div>
               	<p class="text-center"><a class="btn btn-primary btn-lg" href="#" role="button" onClick="CopiarContenido()">Copiar contenido</a> </p>
