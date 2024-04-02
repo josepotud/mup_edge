@@ -77,9 +77,54 @@
 					farmaco["posologia"] = data;
 				}
 
-				farmacos = farmacos.concat(farmaco);
+				if (document.getElementById("accesoriosCheckbox").checked){
+					accesorios = [
+						"bolsas",
+						"sonda",
+						"rodillera",
+						"aposito",
+						"filtros",
+						"tobillera",
+						"media",
+						"absorbente",
+						"camara",
+						"muslera",
+						"gelificad",
+						"esparadra",
+						"muñequera",
+						"venda",
+						"algodon",
+						"accesorio",
+						"codera",
+						"parche",
+						"gasa",
+						"braguero",
+						"pinzas",
+						"funda",						
+						"inhalador",						
+						"canula",
+						"colector",
+						"sistema",
+						"irrigador",
+						"deposito",
+						"calcetin",
+						"suspensor",
+						"obturador",
+						"ducha",
+						]
+					if(accesorios.some(substring=>farmaco["principio"].toLowerCase().includes(substring))){
+						console.log(farmaco)
+					}
+					else{
+						farmacos = farmacos.concat(farmaco);
+					}
+				}
+				else{
+					farmacos = farmacos.concat(farmaco);
+				}
+				
 			}
-			console.log(farmacos);
+			// console.log(farmacos);
 			PrintData(farmacos)
 		}
 		function FormatearTexto(texto){
@@ -112,7 +157,9 @@
 			else if (texto.includes(" g ")){
 				textoFormateado = texto.split(" g ")[0].concat(" g ")
 			}
-			else if (texto.includes("/pulverizacion ")){
+			else if (texto.includes(" 1g ")){
+				textoFormateado = texto.split(" 1g ")[0].concat(" 1g ")
+			}else if (texto.includes("/pulverizacion ")){
 				textoFormateado = texto.split("/pulverizacion ")[0].concat("/pulverizacion")
 			}
 			else if (texto.includes("/dos ")){
@@ -185,7 +232,15 @@
       </div>
     </header>
   <div class="container">
-	  <div class="col-2"></div>
+	<div class="row">
+	  <div class="col-xl-auto">
+		<form>
+			<div class="form-group form-check">
+				<input type="checkbox" class="form-check-input" id="accesoriosCheckbox" value="noAccesorios" checked>
+				<label class="form-check-label" for="accesoriosCheckbox">Omitir accesorios</label>
+			</div>
+		</form>
+	  </div>
 	  <div class="col-xl-auto">
 		<div class="d-flex justify-content-center">
 			<textarea class="" id="muptext" name="MUPText" rows="8" cols="150" oninput="ExtraerDatos()"></textarea>
@@ -203,6 +258,7 @@
 	    </div>
 	  </div>
 	  <div class="col-2"></div>
+	</div>
   </div>
 	  <hr>
     <footer class="text-center">
