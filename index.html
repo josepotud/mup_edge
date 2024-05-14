@@ -51,9 +51,7 @@
 
 				try{
 					textoFormateado = FormatearTexto(data[0])
-					console.log(textoFormateado)
 					farmaco["textoFormateado"] = textoFormateado;
-					console.log(farmaco)
 					textoFormateado = ""
 				}
 				catch (error){
@@ -63,12 +61,17 @@
 
 				try{
 					farmaco["principio"] = data[1];
+					if (farmaco["principio"].length < 1) {
+						farmaco["principio"] = "none"
+					}
 				}
 				catch (error){
 					console.error(error);
-					farmaco["principio"] = "";
+					farmaco["principio"] = "none";
 				}
 				
+				console.log(farmaco)
+
 				data = descripcionPosologia[i].getElementsByTagName("span")[0].getAttribute("ext:qtip");
 				
 				try{
@@ -210,6 +213,7 @@
 				ExtraerDatos()
 				console.log('Text pasted.');
 			} catch (error) {
+				console.error(error)
 				console.log('Failed to read clipboard');
 			}
 		}
