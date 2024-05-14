@@ -51,7 +51,9 @@
 
 				try{
 					textoFormateado = FormatearTexto(data[0])
+					console.log(textoFormateado)
 					farmaco["textoFormateado"] = textoFormateado;
+					console.log(farmaco)
 					textoFormateado = ""
 				}
 				catch (error){
@@ -167,6 +169,9 @@
 			}
 			else if (texto.includes(", ")){
 				textoFormateado = texto.split(", ")[0].concat("")
+			}
+			else {
+				textoFormateado = texto
 			}
 
 			return textoFormateado
