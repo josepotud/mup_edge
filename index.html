@@ -337,7 +337,7 @@
 				<div class="row">
 					<div class="col-12">
 						<h1 class="text-center">Formateador de medicación MUP</h1>
-						<p class="text-center">Copia el texto desde el MUP e introducelo en el cuadro de texto de abajo.
+						<p class="text-center">Copia el texto desde el MUP e introdúcelo en el cuadro de texto de abajo.
 						</p>
 						<p>&nbsp;</p>
 						<div class="row justify-content-md-center">
@@ -372,16 +372,19 @@
 						<label class="form-check-label" for="accesoriosCheckbox">Omitir accesorios</label>
 					</div>
 				</form>
-				<hr>
-				<div class="d-flex justify-content-left">
-					<div class="">
-						Texto formateado:
-					</div>
-				</div>
 				<div class="col-12 mt-2 px-0">
 					<div class="bg-light p-3 border rounded" id="resultText" name="ResultText"
 						style="min-height: 80px;">
 						Aquí se mostrará el texto resultado
+					</div>
+				</div>
+				<div class="col-12 mt-2 px-0">
+					<div class="d-flex justify-content-left">
+						<button class="btn btn-primary" type="button" data-toggle="collapse"
+							data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample"
+							onclick="logEvent(window.analytics, 'toggle_instructions');">
+							Mostrar instrucciones
+						</button>
 					</div>
 				</div>
 			</div>
@@ -393,15 +396,10 @@
 				</div>
 			</div>
 		</div>
-		<hr>
 		<div class="row">
-			<div class="col-12 text-center pb-4">
+			<div class="col-12 text-left pb-4">
 				<p>
-					<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample"
-						aria-expanded="false" aria-controls="collapseExample"
-						onclick="logEvent(window.analytics, 'toggle_instructions');">
-						Mostrar intrucciones
-					</button>
+
 				</p>
 				<style>
 					.max-width {
@@ -409,28 +407,40 @@
 					}
 				</style>
 				<div class="collapse" id="collapseExample">
-					<div class="card card-body text-left d-inline-block">
-						<div class="row">
-							<img src="images/inspeccionar.png" class="max-width">
-						</div>
-						<div>
-							<p>Seleccionar en cualquier punto fuera de la tabla con el segundo boton del ratón (o el
-								boton
-								derecho) el menu de inspeccionar</p>
-						</div>
-						<div class="row">
-							<img src="images/inspector2.png" class="max-width">
-						</div>
-						<div>
-							<p>Seleccionar la primera linea y copiar el contenido con ctrl+c</p>
-						</div>
-						<div class="row">
-							<img src="images/copiarElemento.png" class="max-width">
-						</div>
-						<div>
-							<p>Tambien existe la opción de copiar con el segundo boton del ratón (o el boton derecho)
-							</p>
-						</div>
+					<hr>
+					<div class="card card-body text-left shadow-sm">
+						<h5 class="mb-3">¿Cómo obtener el texto del MUP?</h5>
+						<ol class="pl-3">
+							<li class="mb-3">
+								<strong>Accede al MUP</strong> en tu navegador.
+								<div class="mt-2 text-center">
+									<img src="images/inspeccionar.png" class="img-fluid rounded border max-width"
+										alt="Paso 1: Inspeccionar">
+								</div>
+							</li>
+							<li class="mb-3">
+								Haz clic con el <strong>botón derecho</strong> en cualquier punto fuera de la tabla y
+								selecciona <strong>"Inspeccionar"</strong>.
+								<div class="mt-2 text-center">
+									<img src="images/inspector2.png" class="img-fluid rounded border max-width"
+										alt="Paso 2: Abrir inspector">
+								</div>
+							</li>
+							<li class="mb-3">
+								Localiza la primera línea del html, donde se encuentra la tabla de medicación, haz clic derecho
+								sobre ella y selecciona <strong>Copiar >
+									Copiar elemento</strong> (Copy outerHTML). También puedes usar <code>Ctrl+C</code>
+								una vez seleccionada la línea.
+								<div class="mt-2 text-center">
+									<img src="images/copiarElemento.png" class="img-fluid rounded border max-width"
+										alt="Paso 3: Copiar elemento">
+								</div>
+							</li>
+							<li>
+								Vuelve a esta página y <strong>pega el contenido</strong> en el cuadro de texto superior
+								o usa el botón "Pegar Portapapeles".
+							</li>
+						</ol>
 					</div>
 				</div>
 			</div>
