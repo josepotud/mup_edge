@@ -306,6 +306,16 @@
 			}
 			textoFinal = textoFinal.toLowerCase()
 			textoFinal = textoFinal.charAt(0).toUpperCase() + textoFinal.slice(1);
+			
+			let loop_count = 0
+			while (textoFinal.includes("  ")) {
+				textoFinal = textoFinal.replaceAll("  ", " ");
+				loop_count += 1;
+				if (loop_count > 10) {
+					break;
+				}
+			}
+			
 			document.getElementById("resultText").innerHTML = textoFinal;
 		}
 		function CopiarContenido() {
