@@ -8,6 +8,91 @@
 	<title>Formateador de medicación MUP</title>
 	<!-- Bootstrap -->
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+	<style>
+		#toast-container {
+			position: fixed;
+			top: 24px;
+			right: 24px;
+			z-index: 11000;
+			pointer-events: none;
+			max-width: 90vw;
+		}
+
+		@media (max-width: 576px) {
+			#toast-container {
+				top: 16px;
+				right: 16px;
+				left: 16px;
+				max-width: calc(100vw - 32px);
+			}
+		}
+
+		.custom-toast {
+			display: flex;
+			align-items: center;
+			color: #ffffff;
+			padding: 12px 18px;
+			border-radius: 6px;
+			box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+			font-size: 0.95rem;
+			font-weight: 500;
+			pointer-events: auto;
+			animation: toastSlideIn 0.25s ease-out forwards;
+			transition: opacity 0.2s ease, transform 0.2s ease;
+		}
+
+		.custom-toast.toast-hide {
+			opacity: 0;
+			transform: translateY(-8px);
+		}
+
+		.custom-toast.toast-success {
+			background-color: #28a745;
+		}
+
+		.custom-toast.toast-danger {
+			background-color: #dc3545;
+		}
+
+		.custom-toast-icon {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			margin-right: 10px;
+			flex-shrink: 0;
+		}
+
+		.custom-toast-message {
+			flex-grow: 1;
+		}
+
+		.custom-toast-close {
+			background: none;
+			border: none;
+			color: #ffffff;
+			opacity: 0.8;
+			margin-left: 12px;
+			cursor: pointer;
+			padding: 0 4px;
+			font-size: 1.25rem;
+			line-height: 1;
+		}
+
+		.custom-toast-close:hover {
+			opacity: 1;
+		}
+
+		@keyframes toastSlideIn {
+			from {
+				opacity: 0;
+				transform: translateY(-15px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+	</style>
 	<script type="module">
 		// Import the functions you need from the SDKs you need
 		import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
@@ -37,13 +122,102 @@
 		window.logEvent = logEvent;
 	</script>
 	<script>
-		function ExtraerDatos() {
-			logEvent(window.analytics, 'extract_data_button_click');
+		var activeToastTimeout = null;
+		var lastToastTime = 0;
+		var lastToastKey = "";
+		var isPasting = false;
+
+		function showToast(type, message) {
+			var now = Date.now();
+			if (now - lastToastTime < 250 && lastToastKey === (type + message)) {
+				return;
+			}
+			lastToastTime = now;
+			lastToastKey = type + message;
+
+			var container = document.getElementById("toast-container");
+			if (!container) return;
+
+			if (activeToastTimeout) {
+				clearTimeout(activeToastTimeout);
+				activeToastTimeout = null;
+			}
+
+			// Asegura que no haya más de un toast a la vez
+			container.innerHTML = "";
+
+			var toast = document.createElement("div");
+			toast.className = "custom-toast " + (type === "success" ? "toast-success" : "toast-danger");
+			toast.setAttribute("role", "alert");
+
+			var iconSvg = type === "success"
+				? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+				: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+
+			toast.innerHTML =
+				'<div class="custom-toast-icon">' + iconSvg + '</div>' +
+				'<div class="custom-toast-message">' + message + '</div>' +
+				'<button type="button" class="custom-toast-close" aria-label="Cerrar">&times;</button>';
+
+			var closeBtn = toast.querySelector(".custom-toast-close");
+			if (closeBtn) {
+				closeBtn.onclick = function () {
+					toast.classList.add("toast-hide");
+					setTimeout(function () {
+						if (toast.parentNode === container) {
+							container.removeChild(toast);
+						}
+					}, 200);
+				};
+			}
+
+			container.appendChild(toast);
+
+			activeToastTimeout = setTimeout(function () {
+				toast.classList.add("toast-hide");
+				setTimeout(function () {
+					if (toast.parentNode === container) {
+						container.removeChild(toast);
+					}
+				}, 200);
+				activeToastTimeout = null;
+			}, 3500);
+		}
+
+		function copiarAlPortapapeles(texto) {
+			if (navigator.clipboard && window.isSecureContext) {
+				return navigator.clipboard.writeText(texto).catch(function () {
+					return fallbackCopy(texto);
+				});
+			} else {
+				return fallbackCopy(texto);
+			}
+		}
+
+		function fallbackCopy(texto) {
+			var textArea = document.createElement("textarea");
+			textArea.value = texto;
+			textArea.style.position = "fixed";
+			textArea.style.left = "-999999px";
+			textArea.style.top = "-999999px";
+			document.body.appendChild(textArea);
+			textArea.focus();
+			textArea.select();
+			try {
+				document.execCommand('copy');
+			} catch (err) {
+				console.error('Fallback copy failed', err);
+			}
+			document.body.removeChild(textArea);
+			return Promise.resolve();
+		}
+
+		function ExtraerDatos(isPaste = false) {
+			if (!isPaste && window.analytics && window.logEvent) {
+				logEvent(window.analytics, 'extract_data_button_click');
+			}
 			// Obtener el contenido del textarea
 			var muptext = document.getElementById("muptext").value;
-
-			// Crear un elemento div para mostrar el resultado
-			var resultDiv = document.getElementById("resulttext");
 
 			// Parsear el contenido como HTML
 			var parser = new DOMParser();
@@ -53,7 +227,19 @@
 			var descripcionFarmaco = parsedHtml.getElementsByClassName('x-grid3-cell-inner x-grid3-col-descripcionFarmaco');
 			var descripcionPosologia = parsedHtml.getElementsByClassName('x-grid3-cell-inner x-grid3-col-descripcionPosologia');
 
-			let farmacos = []
+			let farmacos = [];
+
+			var tieneFormatoCorrecto = (descripcionFarmaco.length > 0 && descripcionPosologia.length > 0);
+
+			if (!tieneFormatoCorrecto) {
+				window.extractedFarmacos = [];
+				RenderSidebar([]);
+				document.getElementById("resultText").innerText = "";
+				if (isPaste) {
+					showToast('danger', 'El texto pegado no tiene el formato correcto.');
+				}
+				return;
+			}
 
 			for (let i = 0; i < descripcionFarmaco.length; i++) {
 				farmaco = {};
@@ -301,7 +487,11 @@
 			}
 			// console.log(textoFinal)
 			if (textoFinal === "") {
-				document.getElementById("resultText").innerHTML = "No hay fármacos seleccionados.";
+				if (window.extractedFarmacos && window.extractedFarmacos.length > 0) {
+					document.getElementById("resultText").innerText = "No hay fármacos seleccionados.";
+				} else {
+					document.getElementById("resultText").innerText = "";
+				}
 				return;
 			}
 			textoFinal = textoFinal.toLowerCase()
@@ -319,24 +509,87 @@
 			document.getElementById("resultText").innerHTML = textoFinal;
 		}
 		function CopiarContenido() {
-			var resultText = document.getElementById("resultText").innerHTML;
-			logEvent(window.analytics, 'copy_content_button_click', {
-				text_length: resultText.length
-			});
-			navigator.clipboard.writeText(resultText);
+			var resultEl = document.getElementById("resultText");
+			var resultText = resultEl ? (resultEl.innerText || "").trim() : "";
+			if (window.analytics && window.logEvent) {
+				logEvent(window.analytics, 'copy_content_button_click', {
+					text_length: resultText.length
+				});
+			}
+			copiarAlPortapapeles(resultText);
+			showToast('success', 'Texto copiado al portapapeles');
 		}
 		async function PegarPortapapeles() {
-			logEvent(window.analytics, 'paste_clipboard_button_click');
+			if (window.analytics && window.logEvent) {
+				logEvent(window.analytics, 'paste_clipboard_button_click');
+			}
 			try {
-				const text = await navigator.clipboard.readText()
+				const text = await navigator.clipboard.readText();
 				document.getElementById("muptext").value = text;
-				ExtraerDatos()
+				ExtraerDatos(true);
 				console.log('Text pasted.');
 			} catch (error) {
-				console.error(error)
+				console.error(error);
 				console.log('Failed to read clipboard');
 			}
 		}
+
+		function onMupTextInput() {
+			var wasPaste = isPasting;
+			isPasting = false;
+			ExtraerDatos(wasPaste);
+		}
+
+		document.addEventListener('paste', function (e) {
+			isPasting = true;
+			var mupInput = document.getElementById("muptext");
+
+			if (document.activeElement !== mupInput) {
+				var clipboardData = (e.clipboardData || window.clipboardData);
+				if (clipboardData) {
+					var text = clipboardData.getData('text');
+					if (text !== undefined && text !== null) {
+						e.preventDefault();
+						mupInput.value = text;
+						ExtraerDatos(true);
+						isPasting = false;
+						return;
+					}
+				}
+			}
+
+			setTimeout(function () {
+				if (isPasting) {
+					isPasting = false;
+					ExtraerDatos(true);
+				}
+			}, 0);
+		});
+
+		document.addEventListener('keydown', function (e) {
+			if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+				var selection = window.getSelection().toString();
+				var mupInput = document.getElementById("muptext");
+				var isMupFocused = (document.activeElement === mupInput);
+
+				if (isMupFocused && selection.length > 0) {
+					showToast('success', 'Texto copiado al portapapeles');
+					return;
+				}
+
+				if (selection.length > 0) {
+					showToast('success', 'Texto copiado al portapapeles');
+					return;
+				}
+
+				e.preventDefault();
+				CopiarContenido();
+			}
+		});
+
+		document.addEventListener('copy', function () {
+			showToast('success', 'Texto copiado al portapapeles');
+		});
 	</script>
 </head>
 
@@ -372,7 +625,7 @@
 			<div class="col-md-6 mt-3">
 				<div class="d-flex justify-content-center">
 					<textarea class="form-control" id="muptext" name="MUPText" rows="8"
-						oninput="ExtraerDatos()"></textarea>
+						oninput="onMupTextInput()"></textarea>
 				</div>
 				<form class="mt-2">
 					<div class="form-group form-check mb-0">
@@ -475,6 +728,7 @@
 			</div>
 		</div>
 	</footer>
+	<div id="toast-container" aria-live="polite"></div>
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
 	<!-- Include all compiled plugins (below), or include individual files as needed -->
